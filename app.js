@@ -21,9 +21,13 @@ const usersHandlers = require("./usersHandlers");
 app.get("/api/users", usersHandlers.getUsers);
 app.get("/api/users/:id", usersHandlers.getUserById);
 
-/* cour quête 3*/
+/* quête 3*/
 app.post("/api/movies", movieHandlers.postMovie);
 app.post("/api/users", usersHandlers.postUser);
+
+/* quête 4*/
+app.put("/api/movies/:id", movieHandlers.updateMovie);
+app.put("/api/users/:id", usersHandlers.updateUser);
 
 app.listen(port, (err) => {
   if (err) {
