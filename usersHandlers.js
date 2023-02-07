@@ -92,23 +92,28 @@ const updateUser = (req, res) => {
   const id = parseInt(req.params.id);
   const { firstname, lastname, email, city, language, hashedPassword } =
     req.body;
-
-  database
-    .query(
-      "update users set firstname = ?, lastname = ?, email = ?, city = ?, language = ?, hashedPassword = ? where id = ?",
-      [firstname, lastname, email, city, language, id, hashedPassword]
-    )
-    .then(([result]) => {
-      if (result.affectedRows === 0) {
-        res.status(404).send("Not Found");
-      } else {
-        res.sendStatus(204);
-      }
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).send("Error editing the user");
-    });
+  const idPayloadToken = req.payload.sub;
+  if (id === idPayloadToken) {
+    database
+      .query(
+        "update users set firstname = ?, lastname = ?, email = ?, city = ?, language = ?, hashedPassword = ? where id = ?",
+        [firstname, lastname, email, city, language, hashedPassword, id]
+      )
+      .then(([result]) => {
+        if (result.affectedRows === 0) {
+          res.status(404).send("Not Found");
+        } else {
+          res.sendStatus(204);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        res.status(500).send("Error editing the user");
+      });
+  } else {
+    console.error("forbidden");
+    res.sendStatus(403);
+  }
 };
 
 /* quête 5 */
@@ -131,10 +136,32 @@ const deleteUser = (req, res) => {
     });
 };
 
+/* quête 8 */
+const getUserByEmailWithPasswordAndPassToNext = (req, res, next) => {
+  const { email } = req.body;
+
+  database
+    .query("select * from users where email = ?", [email])
+    .then(([users]) => {
+      if (users[0] != null) {
+        req.user = users[0];
+        console.error("là!");
+        next();
+      } else {
+        res.sendStatus(401);
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send("Error retrieving data from database");
+    });
+};
+
 module.exports = {
   getUsers,
   getUserById,
   postUser,
   updateUser,
   deleteUser,
+  getUserByEmailWithPasswordAndPassToNext,
 };
